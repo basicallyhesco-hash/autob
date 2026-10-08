@@ -964,7 +964,13 @@ export default function ThreeAtlas({
     }
     structures
       .filter((s) => ['arteries', 'veins', 'nerves', 'lymph'].includes(s.system))
-      .forEach((s) => organMesh(s, networks));
+      .forEach((s) => {
+        try {
+          organMesh(s, networks);
+        } catch (error) {
+          console.warn('Skipped an unmapped network structure:', s.id, s.name, error);
+        }
+      });
     addMoreNetworks(networks, structures);
     buildCity(city, networks, structures);
     const itemById = new Map(structures.map((s) => [s.id, s]));
@@ -1114,7 +1120,7 @@ export default function ThreeAtlas({
         if (m.material?.emissive && m.userData.id) setTint(m, '#f3b54a', isSelected);
       }
       target.lerp(new T.Vector3(0, cityView ? 1.0 : 1.25, 0), 0.07);
-      const distance = 20 / a.zoom,
+      const distance = 22 / a.zoom,
         cp = Math.cos(pitch);
       camera.position.set(
         target.x + Math.sin(yaw) * cp * distance,
@@ -1270,16 +1276,14 @@ function organMesh(s, g) {
   }
   if (/arter|aorta|carotid|pulmonary trunk/.test(n) || /vein|vena cava|jugular/.test(n)) {
     let line = route[s.system]?.[0] || route[s.system === 'arteries' ? 'arteries' : 'veins'][0];
+    const left = n.includes('left');
     if (/arm|brachial|axillary|radial|ulnar|cephalic|basilic|subclavian/.test(n))
-      line = route[s.system === 'arteries' ? 'arteries' : 'veins'][n.includes('Left') ? 2 : 1];
+      line = route[s.system][s.system === 'arteries' ? (left ? 2 : 1) : left ? 4 : 3];
     if (/leg|femoral|iliac|tibial|popliteal|saphenous/.test(n))
-      line = route[s.system === 'arteries' ? 'arteries' : 'veins'][n.includes('Left') ? 6 : 5];
-    if (/renal/.test(n))
-      line = route[s.system === 'arteries' ? 'arteries' : 'veins'][n.includes('Left') ? 4 : 3];
+      line = route[s.system][s.system === 'arteries' ? (left ? 6 : 5) : left ? 2 : 1];
+    if (/renal/.test(n)) line = route[s.system][s.system === 'arteries' ? (left ? 4 : 3) : 0];
     if (/carotid|jugular|vertebral/.test(n))
-      line = route[s.system === 'arteries' ? 'arteries' : 'veins'][
-        n.includes('Left') ? 2 : 1
-      ].slice(0, 5);
+      line = route[s.system][s.system === 'arteries' ? (left ? 2 : 1) : left ? 4 : 3].slice(0, 5);
     if (/coronary/.test(n))
       line = [
         [386, 315],

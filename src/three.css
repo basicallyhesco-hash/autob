@@ -708,3 +708,26 @@ body {
     overflow: auto;
   }
 }
+@media (min-width: 761px) {
+  .workspace {
+    align-items: start;
+  }
+  .canvas-panel {
+    height: 850px;
+    min-height: 0;
+  }
+  .map-stage {
+    height: 625px;
+    min-height: 0;
+    flex: none;
+    padding: 0;
+  }
+}
+.workspace {
+  min-height: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
