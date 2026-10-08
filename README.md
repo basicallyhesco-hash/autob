@@ -1,73 +1,49 @@
-# Corpus — The living atlas
+# Corpus — the whole-body 3D learning atlas
 
-An interactive anatomy learning website built with React, Vite, and original SVG illustrations.
+Corpus is an interactive anatomy study site with two linked three-dimensional views: a layered human-body model and a city arranged along the same body plan. Rotate either view, select a structure, search by name, and compare where it appears in the atlas and city.
 
-## Open the website without installing anything
+## Download and open
 
-1. On GitHub, choose **Code → Download ZIP**.
-2. Extract the ZIP completely.
-3. Open **`standalone/index.html`** in a modern browser.
+1. Download this repository as a ZIP from GitHub.
+2. Extract the ZIP.
+3. Open **`standalone/index.html`** in a current desktop browser. Keep the file inside the extracted folder while opening it.
 
-The standalone file includes the application, fonts, styles, and asset licenses. It does not need a server or internet connection for the atlas, city, or quizzes. Do not open the root `index.html`: that file is the development entry point.
+The standalone page bundles its JavaScript, styling, local fonts, Three.js, and license notices into one offline-capable HTML file. It needs no Node installation, server, account, or internet connection. To regenerate it after changing source files, run `npm ci` and `npm run build:standalone`.
 
-To regenerate the standalone file after changing the source, run `npm ci` followed by `npm run build:standalone`. To host the standalone version, upload the contents of `standalone/` to a static website host.
+## Explore
 
-## Run locally
+- **Human anatomy:** orbit the whole-body scene, zoom, isolate systems, filter a body region, search named structures, and select visible structures for descriptions and links.
+- **Body city:** explore a 3D city whose named buildings are positioned by body region and whose arterial, venous, neural, and lymphatic routes become roads. The waist bridge is a learning metaphor linking the upper and lower city districts.
+- **Scope:** 671 searchable named gross-anatomy entries: 206 bones, 110 skeletal-muscle entries, 59 arterial entries, 42 venous entries, 38 nerve/plexus entries, 30 lymphatic entries, organs, and further digestive, respiratory, urinary, reproductive, endocrine, sensory, joint, skin, and immune structures.
+- **Learning tools:** descriptions, location and connection notes, four guided paths, a recall quiz, bookmarks, and locally saved exploration progress.
 
-Use Node.js 24 (tested with 24.19.0) and npm 11.
+## Run and build locally
+
+Use Node.js 24 and npm. No server-side service, credentials, or external API is required.
 
 ```sh
 npm ci
 npm run dev -- --port 5173
-```
-
-The development server binds to all interfaces. No credentials, database, or external API is required. Fonts are bundled locally; the app makes no third-party requests during normal use.
-
-## Build and test
-
-```sh
 npm run build
-npm test
+npm run build:standalone
 ```
 
-`npm run preview -- --port 4173` serves the production build. Deploy the generated `dist/` directory to a static hosting service.
-
-Playwright uses `/usr/bin/chromium` when available. On another machine, install its browser first with `npx playwright install chromium` (and the documented Playwright system dependencies if needed). The test runner starts the development server automatically when one is not already running.
-
-The tests exercise map selection, city/anatomy synchronization, layers, region filtering, labels, zoom and dragging, focus mode, search, notebook persistence, all four learning paths, quiz scoring, mobile overflow, and dialog keyboard navigation. Automated axe checks cover both maps, learning dialogs, and the mobile layout; they supplement rather than replace manual accessibility evaluation.
-
-## Features
-
-- Two linked interactive views: human anatomy and an anatomical city.
-- 34 selected anatomical structures/groups across organs, arteries, veins, nerves, and lymphatics.
-- 15 organ landmarks, all labeled with their anatomical names in both views.
-- Two city districts connected by a symbolic bridge: head/thorax/abdomen above; pelvis/lower limbs below.
-- Search by anatomical name, system, region, or city function. Press Ctrl/Cmd + K to search.
-- Toggle layers, isolate body regions, hide labels, and zoom. Drag the diagram after zooming in. Reset restores the whole view.
-- Organ descriptions, locations, connections, memorable city analogies, and facts.
-- Four guided paths: circulation, digestion, lymph return, and sensory signaling.
-- Seven-question active-recall quiz with explanations, scoring, and review links.
-- Bookmarks and exploration progress saved locally in the browser. No account is needed.
-- Responsive layout, keyboard-selectable map targets, focus-managed dialogs, and reduced-motion support.
+Vite serves the interactive development site at the address it prints. `npm run build` writes the web bundle to `dist/`. The deployable static site is `dist/`; the single-file download is `standalone/index.html`.
 
 ## Anatomical scope
 
-This is a schematic study aid, not an exact-scale anatomical reconstruction, exhaustive organ list, dissection atlas, or diagnostic product. Patient right appears on the viewer’s left in the anterior view. Posterior structures are superimposed; pathways, proportions, and depth are simplified. Some paired structures are represented by a single selectable group.
+The 3D model is procedural and intended as a whole-body gross-anatomy visualization. It gives structures volume and relative position for learning, but it is not a medical-grade scan, dissection atlas, or exact anatomical reconstruction. Many mesh forms and body coordinates are simplified; small vessels, microscopic anatomy, variants, and every individual branching relationship are not reconstructed. Named entries remain searchable and select their mapped position. Consult an anatomy reference for precise clinical or dissection work.
 
-The city retains anatomical names and approximate relative positions. Building footprints are spaced for clarity. Roads symbolize communication and transport pathways; the bridge is a teaching metaphor, not a structure or separation in the human body. The upper/lower boundary used here is between the abdomen and pelvis, not the diaphragm.
+Patient right appears on the viewer’s left in the anterior view. The city layout preserves a broad body-region plan, but its building footprints are spaced for visibility. Arterial paths are red and veins blue; those colors describe vessel type, not oxygen content. Pulmonary arteries carry deoxygenated blood and pulmonary veins carry oxygenated blood. The city bridge is a teaching metaphor, not an anatomical structure.
 
-Red indicates arterial routes and blue indicates venous routes, **not oxygen content**. Pulmonary arteries carry deoxygenated blood and pulmonary veins carry oxygenated blood. The routes do not show every branch, capillary bed, vessel connection, nerve, or lymph node.
+For further study, see [OpenStax Anatomy and Physiology 2e](https://openstax.org/details/books/anatomy-and-physiology-2e) and [NCBI Bookshelf](https://www.ncbi.nlm.nih.gov/books/). An anatomy educator should review the content before formal classroom adoption.
 
-Foundational references for continued study: [OpenStax Anatomy and Physiology 2e](https://openstax.org/details/books/anatomy-and-physiology-2e) and [NCBI Bookshelf: anatomy reference library](https://www.ncbi.nlm.nih.gov/books/). Formal educational use should include review by an anatomy educator.
+## Source layout
 
-## Project structure
+- `src/ThreeAtlas.jsx`: Three.js anatomy and city scenes, mesh selection, labels, orbiting, and zoom.
+- `src/catalog.js`: whole-body structure names, body regions, and system groupings.
+- `src/data.js`: selected organ descriptions, city analogies, learning paths, and quiz content.
+- `src/main.jsx`, `src/styles.css`, `src/three.css`: learning controls, responsive interface, and presentation.
+- `scripts/build-standalone.mjs`: embeds the production bundle and its local licenses.
 
-- `src/data.js`: anatomy, city analogies, guided paths, and quiz content.
-- `src/Atlas.jsx`: original body illustration, vessel/nerve/lymph routes, city buildings, labeling, and pan behavior.
-- `src/main.jsx`: application state, navigation, exploration controls, notebook, and learning dialogs.
-- `src/styles.css`: responsive visual design and accessibility styling.
-- `tests/`: browser interaction and accessibility tests.
-- `standalone/index.html`: ready-to-open website, with all assets embedded.
-- `scripts/build-standalone.mjs`: reproducible standalone packager.
-
-The existing checkout is the development workspace. Cloud tasks are isolated; no additional Git worktree is needed. This project has not been deployed to a public hosting provider.
+The website can be deployed by serving `dist/` with any static web host. It has not been published to a public web host.

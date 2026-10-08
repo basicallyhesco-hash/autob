@@ -39,6 +39,7 @@ const packages = [
   'react',
   'react-dom',
   'lucide-react',
+  'three',
 ];
 const licenses = packages.map(
   (name) => name + '\n' + fs.readFileSync(path.join(root, 'node_modules', name, 'LICENSE'), 'utf8'),

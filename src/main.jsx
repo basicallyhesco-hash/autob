@@ -32,18 +32,36 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
+  Bone,
+  Activity,
+  Wind,
+  ShieldCheck,
+  ScanEye,
 } from 'lucide-react';
-import Atlas, { Organ } from './Atlas';
-import { structures, systems, regions, journeys, quizQuestions } from './data';
+import ThreeAtlas from './ThreeAtlas';
+import { structures, systems, regions } from './catalog';
+import { journeys, quizQuestions } from './data';
 import '@fontsource-variable/dm-sans';
 import '@fontsource/libre-caslon-display/latin-400.css';
 import './styles.css';
+import './three.css';
 const iconFor = {
   organs: HeartPulse,
   arteries: Route,
   veins: Droplets,
   nerves: Network,
   lymph: Layers3,
+  bones: Bone,
+  muscles: Activity,
+  respiratory: Wind,
+  urinary: Droplets,
+  reproductive: HeartPulse,
+  endocrine: Sparkles,
+  sensory: ScanEye,
+  joints: Bone,
+  skin: PersonStanding,
+  immune: ShieldCheck,
+  digestive: Activity,
 };
 function readSaved(key, fallback) {
   try {
@@ -68,13 +86,11 @@ function IconButton({ title, children, onClick, className = '', ...props }) {
 function App() {
   const [view, setView] = useState('anatomy'),
     [selected, setSelected] = useState('heart');
-  const [layers, setLayers] = useState({
-    organs: true,
-    arteries: true,
-    veins: true,
-    nerves: false,
-    lymph: false,
-  });
+  const [layers, setLayers] = useState(() =>
+    Object.fromEntries(
+      systems.map(({ id }) => [id, ['organs', 'bones', 'arteries', 'veins', 'skin'].includes(id)]),
+    ),
+  );
   const [labels, setLabels] = useState(true),
     [region, setRegion] = useState('all'),
     [zoom, setZoom] = useState(1),
@@ -95,7 +111,7 @@ function App() {
     lastFocus = useRef(null);
   const s = structures.find((n) => n.id === selected),
     system = systems.find((n) => n.id === s.system),
-    StructureIcon = iconFor[s.system];
+    StructureIcon = iconFor[s.system] || Layers3;
   const filtered = structures.filter((n) =>
     `${n.name} ${n.city} ${n.system} ${n.region}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -264,10 +280,13 @@ function App() {
               <span /> ANATOMY, REIMAGINED
             </div>
             <h1>
-              A body of knowledge.
+              Anatomy in three dimensions.
               <br className="mobile-break" /> A city of connections.
             </h1>
-            <p>Explore the human body. See how it all connects. Make it unforgettable.</p>
+            <p>
+              Explore the human body in 3D. Isolate anatomical systems, then discover their city
+              counterparts.
+            </p>
           </div>
           <button className="practice-button" onClick={startQuiz}>
             <GraduationCap size={18} /> Test your knowledge <ArrowUpRight size={16} />
@@ -324,10 +343,10 @@ function App() {
                 <div className="search-dismiss" onClick={() => setSearchOpen(false)} />
                 <div className="search-results">
                   <div className="search-label">
-                    {query ? `${filtered.length} matching structures` : 'EXPLORE A STRUCTURE'}
+                    {query ? `${filtered.length} matching structures` : 'SEARCH THE WHOLE BODY'}
                   </div>
                   {filtered.length ? (
-                    filtered.map((n) => (
+                    filtered.slice(0, 12).map((n) => (
                       <button key={n.id} onClick={() => select(n.id)}>
                         <span
                           className="result-dot"
@@ -396,13 +415,7 @@ function App() {
               <span>·</span>
               <button
                 onClick={() =>
-                  setLayers({
-                    organs: true,
-                    arteries: false,
-                    veins: false,
-                    nerves: false,
-                    lymph: false,
-                  })
+                  setLayers(Object.fromEntries(systems.map(({ id }) => [id, id === 'organs'])))
                 }
               >
                 Organs only
@@ -452,25 +465,30 @@ function App() {
               <span className="live-dot" /> Built for curious minds.
             </div>
           </aside>
-          <section className="canvas-panel" aria-label="Interactive atlas">
+          <section
+            className="canvas-panel"
+            aria-label="Interactive full-body three-dimensional atlas"
+          >
             <div className="canvas-heading">
               <div>
                 <span className="tiny-label">
                   {view === 'anatomy' ? 'THE HUMAN ATLAS' : 'THE BODY, REBUILT'}
                 </span>
                 <h2>
-                  {view === 'anatomy' ? 'Every part has a purpose.' : 'One city. Working together.'}
+                  {view === 'anatomy'
+                    ? 'The anatomy, inside and out.'
+                    : 'A living city follows the body plan.'}
                 </h2>
               </div>
               <span className="view-badge">
-                {view === 'anatomy' ? 'ANTERIOR VIEW' : 'ANATOMICAL CITY'}
+                {view === 'anatomy' ? 'INTERACTIVE 3D ATLAS' : 'A CITY BUILT TO BODY PLAN'}
               </span>
             </div>
             <div className="canvas-topline">
               <span>
                 <span className="canvas-status" />
                 {region === 'all'
-                  ? `${structures.length} structures to discover`
+                  ? `${structures.length} named structures · 206 bones`
                   : regions.find((r) => r.id === region).name}
               </span>
               <button
@@ -482,22 +500,17 @@ function App() {
               </button>
             </div>
             <div className="map-stage">
-              <div className="orientation">
-                <span>R</span>
-                <span>Patient’s right</span>
-              </div>
-              <div className="orientation right">
-                <span>L</span>
-                <span>Patient’s left</span>
-              </div>
-              <Atlas
+              <ThreeAtlas
                 view={view}
+                structures={structures}
+                systems={systems}
                 layers={layers}
                 selected={selected}
                 onSelect={select}
                 labels={labels}
-                region={region}
                 zoom={zoom}
+                setZoom={setZoom}
+                region={region}
               />
               {activeLayers.length === 0 && (
                 <div className="empty-map">
@@ -512,16 +525,16 @@ function App() {
                 <div>
                   <IconButton
                     title="Zoom in"
-                    disabled={zoom >= 1.8}
-                    onClick={() => setZoom((z) => Math.min(1.8, +(z + 0.2).toFixed(1)))}
+                    disabled={zoom >= 2.25}
+                    onClick={() => setZoom((z) => Math.min(2.25, +(z + 0.2).toFixed(1)))}
                   >
                     <Plus size={17} />
                   </IconButton>
                   <span>{Math.round(zoom * 100)}%</span>
                   <IconButton
                     title="Zoom out"
-                    disabled={zoom <= 0.8}
-                    onClick={() => setZoom((z) => Math.max(0.8, +(z - 0.2).toFixed(1)))}
+                    disabled={zoom <= 0.6}
+                    onClick={() => setZoom((z) => Math.max(0.6, +(z - 0.2).toFixed(1)))}
                   >
                     <Minus size={17} />
                   </IconButton>
@@ -561,8 +574,8 @@ function App() {
               <div className="map-caption">
                 <span className="crosshair">＋</span>{' '}
                 {view === 'anatomy'
-                  ? 'A little curiosity goes a long way. Select any structure.'
-                  : 'Same body. A different way to remember it.'}
+                  ? 'Drag to orbit. Select a structure. Search to find the rest.'
+                  : 'Named city structures trace back to the body plan.'}
               </div>
             </div>
             {guide && (
@@ -622,8 +635,8 @@ function App() {
               <Info size={12} />
               <span>
                 {view === 'anatomy'
-                  ? 'Schematic overview · structures are simplified and depth is superimposed.'
-                  : 'Relative positions preserved · buildings, distances & bridge are a learning analogy.'}
+                  ? '3D teaching model · body forms and routes are schematic. Search 671 named gross-anatomy entries.'
+                  : '3D teaching city · named buildings and road networks follow the body-region plan.'}
               </span>
             </div>
           </section>
@@ -642,15 +655,7 @@ function App() {
             <div className="organ-portrait">
               <div className="portrait-orbit orbit-one" />
               <div className="portrait-orbit orbit-two" />
-              {s.system === 'organs' ? (
-                <svg viewBox="-65 -70 130 140" aria-hidden="true">
-                  <g transform={s.id === 'heart' ? 'translate(0 0) scale(1.2)' : 'translate(0 0)'}>
-                    <Organ id={s.id} />
-                  </g>
-                </svg>
-              ) : (
-                <StructureIcon size={64} strokeWidth={1.1} style={{ color: system.color }} />
-              )}
+              <StructureIcon size={64} strokeWidth={1.1} style={{ color: system.color }} />
               <span className="portrait-index">
                 {String(structures.findIndex((n) => n.id === selected) + 1).padStart(2, '0')} /{' '}
                 {structures.length}
